@@ -1,11 +1,10 @@
 import Vue from 'vue'
 import App from './App.vue'
-import './styles/element-variables.scss'
-import ElementUI from 'element-ui'
-Vue.use(ElementUI, {
-  size: 'mini' // set element-ui default size
-})
+import elementUi from '@/element'
+Vue.use(elementUi)
 Vue.config.productionTip = false
+// 设置element size属性
+Vue.prototype.$ELEMENT = { size: 'mini' };
 
 new Vue({
   render: h => h(App),

@@ -15,9 +15,13 @@
 </template>
 
 <script>
+import { Table, TableColumn } from 'element-ui'
 export default {
   props: {},
-  components: {},
+  components: {
+    [Table.name]: Table,
+    [TableColumn.name]: TableColumn,
+  },
   data() {
     return {
       tableList: {

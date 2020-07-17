@@ -14,7 +14,7 @@
         <s class="circular"></s>
         <span class="tip">识别时段</span>
       </el-tag>
-      <el-button v-if="!disabled" type="info" class="fr" @click.stop="resetForm" plain icon="el-icon-delete">清空</el-button>
+      <el-button v-if="!disabled" size="mini" type="info" class="fr" @click.stop="resetForm" plain icon="el-icon-delete">清空</el-button>
     </div>
     <div class="scroll-box">
       <div class="week-plan-time" :style="{width: boxWidth}">
@@ -132,6 +132,7 @@
 </template>
 
 <script>
+import { Popover, Button, CheckboxGroup, Checkbox, Tag } from 'element-ui'
 // 依赖深拷贝
 import { deepClone } from "@/utils";
 export default {
@@ -198,6 +199,13 @@ export default {
         };
       }
     }
+  },
+  components: {
+    [Button.name]: Button,
+    [Popover.name]: Popover,
+    [CheckboxGroup.name]: CheckboxGroup,
+    [Checkbox.name]: Checkbox,
+    [Tag.name]: Tag,
   },
   data() {
     return {
