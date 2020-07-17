@@ -4,6 +4,7 @@ import {
   Checkbox,
   CheckboxGroup,
   Collapse,
+  CollapseItem,
   Icon,
   Tag,
   Table,
@@ -20,6 +21,7 @@ const element = {
     Vue.use(Checkbox)
     Vue.use(CheckboxGroup)
     Vue.use(Collapse)
+    Vue.use(CollapseItem)
     Vue.use(Icon)
     Vue.use(Loading)
     Vue.use(Tag)
