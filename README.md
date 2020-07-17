@@ -7,6 +7,5 @@
 #### 项目说明
 ######依赖：node-sass、sass-loader、element-ui
 ###### 运行demo
-npm i
-/n
+npm i  
 npm run serve
