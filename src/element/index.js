@@ -9,6 +9,7 @@ import {
   Tag,
   Table,
   TableColumn,
+  TimePicker,
   Popover,
   Loading,
   MessageBox,
@@ -27,6 +28,7 @@ const element = {
     Vue.use(Tag)
     Vue.use(Table)
     Vue.use(TableColumn)
+    Vue.use(TimePicker)
     Vue.use(Popover)
     Vue.prototype.$loading = Loading.service
     Vue.prototype.$msgbox = MessageBox
