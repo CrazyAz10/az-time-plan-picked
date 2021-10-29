@@ -8,11 +8,11 @@
 #### 拖拽选取时间段
 ![images](https://github.com/MrChenGG/az-time-plan-picked/blob/master/test001.jpg) 
 #### 点击已有时间段可输入指定时间重新选取时间段
-![images](https://github.com/MrChenGG/az-time-plan-picked/blob/master/test002.jpg)
+![images](https://github.com/MrChenGG/az-time-plan-picked/blob/master/test002.png)
 #### 右侧复制功能可将当日选取时间段复制到其他日期上
-![images](https://github.com/MrChenGG/az-time-plan-picked/blob/master/test003.jpg)
+![images](https://github.com/MrChenGG/az-time-plan-picked/blob/master/test003.png)
 #### 只读模式
-![images](https://github.com/MrChenGG/az-time-plan-picked/blob/master/test004.jpg)
+![images](https://github.com/MrChenGG/az-time-plan-picked/blob/master/test004.png)
 
 #### 项目说明
 ###### 依赖：node-sass、sass-loader、element-ui
