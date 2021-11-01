@@ -53,6 +53,22 @@ export default {
                 "{label: 'label',timeList: 'timeList',startTime: 'startTime',endTime: 'endTime',}"
             },
             {
+              parameter: "timeLevel",
+              explain: "时间展示等级（'ss':按秒展示，'mm':按分展示）\n注：当时间等级为mm 时传入的日期格式必须时00:00, ss等级则为00:00:00",
+              type: "String",
+              optional: "ss/mm",
+              default:
+                "mm"
+            },
+            {
+              parameter: "repeat",
+              explain: "重复模式，同一时间段可重复选择添加",
+              type: "Boolean",
+              optional: "true/false",
+              default:
+                "false"
+            },
+            {
               parameter: "disabled",
               explain: "只读模式",
               type: "Boolean",
@@ -79,7 +95,7 @@ export default {
             {
               parameter: "resetForm",
               explain: "清空数据",
-              type: "--",
+              type: "Function",
               optional: "--",
               default: "--"
             }

@@ -5,6 +5,7 @@ import {
   CheckboxGroup,
   Collapse,
   CollapseItem,
+  Radio,
   Icon,
   Tag,
   Table,
@@ -12,6 +13,7 @@ import {
   TimePicker,
   Popover,
   Loading,
+  Switch,
   MessageBox,
   Message
 } from 'element-ui'
@@ -23,6 +25,7 @@ const element = {
     Vue.use(CheckboxGroup)
     Vue.use(Collapse)
     Vue.use(CollapseItem)
+    Vue.use(Radio)
     Vue.use(Icon)
     Vue.use(Loading)
     Vue.use(Tag)
@@ -30,6 +33,7 @@ const element = {
     Vue.use(TableColumn)
     Vue.use(TimePicker)
     Vue.use(Popover)
+    Vue.use(Switch)
     Vue.prototype.$loading = Loading.service
     Vue.prototype.$msgbox = MessageBox
     Vue.prototype.$alert = MessageBox.alert

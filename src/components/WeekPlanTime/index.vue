@@ -5,8 +5,12 @@
   创建时间：2020-07-15
   组件功能：
     周一 至 周日 七日每日24小时 多段 时段选择器
+    重复模式 下可重复选择同一时间段添加
+    时间展示等级 可按秒或者分展示
   功能缺失：
-    时段拉伸 未限制已有时段范围 只限制了最大最小范围
+    时间段备注功能
+  缺点：
+    由于使用了window.addEventListener做监听 目前只支持一个页面加载一次该组件
   -->
   <div class="week-plan-time-wrap">
     <div class="tool-tips clearfix" :style="{maxWidth: boxWidth}">
@@ -23,7 +27,7 @@
             <li v-for="index in 24" :key="index">{{index-1}}</li>
           </ul>
         </div>
-        <div class="az-week-list">
+        <div class="az-week-list" :ref="weekId">
           <div class="week-item" v-for="(item,index) in weekList" :key="index">
             <span class="label">{{item[props.label]}}</span>
             <div
@@ -47,6 +51,7 @@
                 >
                   <div
                     class="content"
+                    :style="{background: time.style}"
                     @mousedown.stop="event => arrowsStart(event,time,'content',[index,ind])"
                   ></div>
                   <div
@@ -68,6 +73,7 @@
                 </div>
                 <div class="detail-box">
                   <el-time-picker
+                    v-if="timeLevel=='mm'"
                     v-model="time.RangeTime"
                     :clearable="false"
                     style="width: 100%"
@@ -78,6 +84,20 @@
                     value-format="HH:mm"
                     @change="value => timeChange(value,time)"
                   ></el-time-picker>
+                  <el-time-picker
+                    v-if="timeLevel=='ss'"
+                    is-range
+                    style="width: 100%"
+                    v-model="time.RangeTime"
+                    range-separator="-"
+                    :clearable="false"
+                    :disabled="disabled"
+                    value-format="HH:mm:ss"
+                    @change="value => timeChange(value,time)"
+                    start-placeholder="开始时间"
+                    end-placeholder="结束时间"
+                    placeholder="选择时间范围">
+                  </el-time-picker>
                   <div class="btn-box" v-if="!disabled" style="text-align: right;margin-top: 10px;">
                     <el-button
                       type="primary"
@@ -100,7 +120,7 @@
               trigger="click"
               :ref="`popover-${index}m_`"
             >
-              <span class="copy-btn" @click="actionCopy(index)" slot="reference">
+              <span class="copy-btn" @click.stop="actionCopy(index)" slot="reference">
                 <i class="el-icon-document-copy"></i>
               </span>
               <p>复制到</p>
@@ -139,6 +159,10 @@ export default {
   name: "",
   props: {
     disabled: {
+      type: Boolean,
+      default: false
+    },
+    repeat: {
       type: Boolean,
       default: false
     },
@@ -188,6 +212,10 @@ export default {
         ];
       }
     },
+    timeLevel: {
+      type: String,
+      default: "mm"
+    },
     props: {
       type: Object,
       default() {
@@ -195,7 +223,7 @@ export default {
           label: "label",
           timeList: "timeList",
           startTime: "startTime",
-          endTime: "endTime"
+          endTime: "endTime",
         };
       }
     }
@@ -209,6 +237,7 @@ export default {
   },
   data() {
     return {
+      weekId: 'week'+ new Date().getTime(),
       copyList: [],
       checkAll: false,
       isIndeterminate: false,
@@ -236,14 +265,21 @@ export default {
   },
   mounted() {
     window.addEventListener("mousemove", this.mousemoveNow);
-    window.addEventListener("mouseup", this.mouseupEnd);
+    window.addEventListener("mouseup", this.mouseupEnd); 
     // 获取1秒时间容器宽度
-    this.secondWidth = this.width.replace("px", "") / (24 * 60);
+    this.secondWidth = this.width.replace("px", "") / ( 24 * 60 * 60 );
     if (this.weekList) {
       this.initFormatData();
     }
   },
   methods: {
+    // 获取随机色
+    randomRgb() {
+        let R = Math.floor(Math.random() * 255);
+        let G = Math.floor(Math.random() * 255);
+        let B = Math.floor(Math.random() * 255);
+        return "rgb("+ R + "," + G + "," + B + ")";
+    },
     // 格式化数据  转化成组件可操作格式
     initFormatData() {
       // 重置参数
@@ -265,6 +301,8 @@ export default {
             this.$set(val,'startX',"")// 操作时鼠标点击起始点位置
             this.$set(val,'endX',"")// 操作时鼠标最终位置
             this.$set(val,'id',"")// 时段id
+            this.$set(val,'temporary', false)// 时段id
+            this.$set(val,'style', this.randomRgb())// 时段id
             this.$set(val,'RangeTime',[
               val[this.props.startTime],
               val[this.props.endTime]
@@ -276,6 +314,10 @@ export default {
             // 计算时段定位
             val.pointX = st * this.secondWidth + "px";
           });
+          // 按起始时间重新排序
+          value[this.props.timeList].sort((a,b)=>{
+            return (a.pointX.replace("px", "") * 1) - (b.pointX.replace("px", "") * 1)
+          })
         }
       });
     },
@@ -283,14 +325,26 @@ export default {
     formatSecond(time) {
       if (!time) return;
       let t = time.split(":");
-      if (t.length != 2) return;
-      // 去除前缀0
-      let st = t[0].replace(/^0/, "");
-      let et = t[1].replace(/^0/, "");
-      return st * 60 + et * 1;
+      if(this.timeLevel == 'mm') {
+        if (t.length != 2) return;
+        // 去除前缀0
+        let ht = t[0].replace(/^0/, "");
+        let mt = t[1].replace(/^0/, "");
+        return (ht * 60 *60) + mt * 60;
+      } else{
+        if (t.length != 3) return;
+        // 去除前缀0
+        let ht = t[0].replace(/^0/, "");
+        let mt = t[1].replace(/^0/, "");
+        let st = t[1].replace(/^0/, "");
+        return (ht * 60 * 60) + (mt * 60) + (st * 1);
+      }
     },
     // 点击预新增时段
     mousedownStart(event, action) {
+      // 防止一个页面调用多个日期选择器
+      // if(!(this.$refs[this.weekId] !== event.target && this.$refs[this.weekId].contains(event.target))) return
+
       // 非警用状态下触发添加时段
       if (!this.disabled) {
         this.dageDom = "addTime";
@@ -298,16 +352,22 @@ export default {
           pointX: event.layerX + "px", // 时段定位
           r_width: "", // 备份
           r_pointX: "", // 备份
-          width: "1px", // 时段宽度
+          width: `${this.secondWidth}px`, // 时段宽度
           startX: "", // 操作时鼠标点击起始点位置
           endX: "", // 操作时鼠标最终位置
           [this.props.startTime]: "", // 计算出的起始时间
           [this.props.endTime]: "", // 计算出的结束时间
           RangeTime: [],
-          isPre: true
+          isPre: true,
+          style: this.randomRgb(),
+          temporary: true // 标记当前操作项 操作结束后为false
         };
         this.recalcTime(temp);
         this.weekList[action[0]][this.props.timeList].push(temp);
+        // 按起始时间重新排序
+        this.weekList[action[0]][this.props.timeList].sort((a,b)=>{
+          return (a.pointX.replace("px", "") * 1) - (b.pointX.replace("px", "") * 1)
+        })
         // 激活vue数据更新钩子
         this.$set(
           this.weekList[action[0]][this.props.timeList],
@@ -329,12 +389,19 @@ export default {
     },
     // 时段点击拖拽
     arrowsStart(event, temp, dom, action) {
-      // 非警用状态下触发编辑时段
+      // 防止一个页面调用多个日期选择器
+      // if(!(this.$refs[this.weekId] !== event.target && this.$refs[this.weekId].contains(event.target))) {
+      //   this.ifDrag = false;
+      //   return
+      // }
+
+      // 非禁用状态下触发编辑时段
       if (!this.disabled) {
         this.activeTime = action ? action : this.activeTime;
         this.ifDrag = true;
         this.dageDom = dom;
         this.temp = temp;
+        this.temp.temporary = true;
         // 备份记录
         this.temp.r_width = temp.width.replace("px", "") * 1;
         this.temp.r_pointX = temp.pointX.replace("px", "") * 1;
@@ -351,35 +418,63 @@ export default {
     },
     // 点击结束
     mouseupEnd(event) {
-      // 鼠标点击其他位置取消选中的操作对象
-      if (!this.temp) {
-        this.activeTime = [];
-      } else {
-        this.listenerChange();
+      // 防止一个页面调用多个日期选择器
+      // if(!(this.$refs[this.weekId] !== event.target && this.$refs[this.weekId].contains(event.target))) return
+      try {
+        // 鼠标点击其他位置取消选中的操作对象
+        let item_index = this.weekList[this.activeTime[0]][this.props.timeList].find((d)=>{
+          return d.temporary
+        })
+        if (!this.temp) {
+          this.activeTime = [];
+        } else {
+          this.listenerChange();
+        }
+        // 并非真正想新增
+        if (this.temp && this.temp.isPre) {
+          this.weekList[this.activeTime[0]][this.props.timeList].splice(item_index,1);
+          this.$set(
+            this.weekList[this.activeTime[0]][this.props.timeList],
+            "length",
+            this.weekList[this.activeTime[0]][this.props.timeList].length
+          );
+        }else{
+          this.temp.temporary = false
+        }
+        this.temp = false;
+        this.dageDom = "";
+        this.ifDrag = false;
+      } catch (error) {
+        
       }
-      // 并非真正想新增
-      if (this.temp && this.temp.isPre) {
-        this.weekList[this.activeTime[0]][this.props.timeList].pop();
-        this.$set(
-          this.weekList[this.activeTime[0]][this.props.timeList],
-          "length",
-          this.weekList[this.activeTime[0]][this.props.timeList].length
-        );
-      }
-      this.temp = false;
-      this.dageDom = "";
-      this.ifDrag = false;
     },
     // 重新计算宽度和定位
     recalcAttr(temp) {
       let point = temp.r_pointX;
+      let minX = 0;
       let maxW = this.width.replace("px", "") * 1;
+      // 复选模式
+      if(!this.repeat){
+        let item_index = this.weekList[this.activeTime[0]][this.props.timeList].findIndex((d)=>{
+          return d.temporary == true
+        })
+        // 最小不能小于前一个已有时段的最大值
+        if(item_index > 0){
+          let last_item = this.weekList[this.activeTime[0]][this.props.timeList][item_index-1]
+          minX = (last_item.pointX.replace("px", "") * 1) + (last_item.width.replace("px", "") * 1)
+        }
+        // 最大不能大于后一个已有时段的最小值
+        if(item_index < (this.weekList[this.activeTime[0]][this.props.timeList].length-1)){
+          let next_item = this.weekList[this.activeTime[0]][this.props.timeList][item_index+1]
+          maxW = (next_item.pointX.replace("px", "") * 1)
+        }
+      }
       // 拖拽左滑块
       if (this.dageDom == "start") {
         let width = temp.r_width * 1 + (temp.startX - temp.endX);
         point = point * 1 - (temp.startX - temp.endX);
-        if (point < 0) {
-          point = 0;
+        if (point < minX) {
+          point = minX;
           width = temp.width.replace("px", "");
         }
         if (temp.startX - temp.endX + temp.r_width * 1 < 0) {
@@ -393,8 +488,8 @@ export default {
         let width = temp.r_width * 1 + (temp.endX - temp.startX);
         if (width < 0) {
           point = point * 1 + width;
-          if (point < 0) {
-            point = 0;
+          if (point < minX) {
+            point = minX;
             width = temp.width.replace("px", "");
           }
           temp.pointX = point + "px";
@@ -409,8 +504,8 @@ export default {
       } else if (this.dageDom == "content") {
         let width = temp.r_width;
         point = point + (temp.endX - temp.startX);
-        if (point < 0) {
-          point = 0;
+        if (point < minX) {
+          point = minX;
         }
         if (point + width > maxW) {
           point = maxW - width;
@@ -425,19 +520,30 @@ export default {
     recalcTime(temp) {
       let pointX = temp.pointX.replace("px", "") * 1;
       let width = temp.width.replace("px", "") * 1;
+      // let h_second = pointX / this.secondWidth;
       let s_second = pointX / this.secondWidth;
       let e_second = (pointX + width) / this.secondWidth;
       temp[this.props.startTime] = this.formatMinute(s_second);
       temp[this.props.endTime] = this.formatMinute(e_second);
       temp.RangeTime = [temp[this.props.startTime], temp[this.props.endTime]];
     },
-    // 秒数转 分秒显示 100 => 01:40
+    // 秒数转 分秒显示 100 => 01:40 或者 02:40:00
     formatMinute(scNumber) {
-      let minute = Math.floor(scNumber / 60);
-      let second = Math.floor(scNumber % 60);
-      minute = minute >= 10 ? minute : "0" + minute;
-      second = second >= 10 ? second : "0" + second;
-      return minute + ":" + second;
+      if(this.timeLevel=='mm'){
+        let minute = Math.floor(scNumber / 60);
+        let second = Math.floor(scNumber % 60);
+        minute = minute >= 10 ? minute : "0" + minute;
+        second = second >= 10 ? second : "0" + second;
+        return minute + ":" + second;
+      }else {
+        let hour = Math.floor(scNumber / (60 * 60));
+        let minute = Math.floor(scNumber % (60 * 60) / 60);
+        let second = Math.floor(scNumber % (60 * 60) % 60 );
+        hour = hour >= 10 ? hour : "0" + hour;
+        minute = minute >= 10 ? minute : "0" + minute;
+        second = second >= 10 ? second : "0" + second;
+        return hour + ":" + minute + ":" + second;
+      }
     },
     // 编辑保存操作
     saveTime(temp, name) {
@@ -632,6 +738,7 @@ export default {
                 width: 100%;
                 height: 100%;
                 background: #13c2c2;
+                opacity: .8;
               }
               .arrows {
                 position: absolute;
