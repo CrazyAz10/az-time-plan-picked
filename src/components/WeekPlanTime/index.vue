@@ -422,7 +422,7 @@ export default {
       // if(!(this.$refs[this.weekId] !== event.target && this.$refs[this.weekId].contains(event.target))) return
       try {
         // 鼠标点击其他位置取消选中的操作对象
-        let item_index = this.weekList[this.activeTime[0]][this.props.timeList].find((d)=>{
+        let item_index = this.weekList[this.activeTime[0]][this.props.timeList].findIndex((d)=>{
           return d.temporary
         })
         if (!this.temp) {
@@ -439,8 +439,8 @@ export default {
             this.weekList[this.activeTime[0]][this.props.timeList].length
           );
         }else{
-          this.temp.temporary = false
         }
+        this.temp.temporary = false
         this.temp = false;
         this.dageDom = "";
         this.ifDrag = false;
