@@ -337,7 +337,7 @@ export default {
         // 去除前缀0
         let ht = t[0].replace(/^0/, "");
         let mt = t[1].replace(/^0/, "");
-        let st = t[1].replace(/^0/, "");
+        let st = t[2].replace(/^0/, "");
         return (ht * 60 * 60) + (mt * 60) + (st * 1);
       }
     },
